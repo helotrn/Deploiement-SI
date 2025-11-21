@@ -1,0 +1,7 @@
+// Routes REST pour automates – /backend/routes/automateroutes.js
+const router = require('express').Router();
+const ctrl = require('../controllers/automatecontroller');
+router.get('/', ctrl.getAll);
+router.get('/:id', ctrl.getById);
+router.post('/', ctrl.create);
+module.exports = router;

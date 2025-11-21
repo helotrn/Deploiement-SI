@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Automate | Supervision variable</title>
+  <link rel="stylesheet" href="css/styles.css">
+  <script src="js/automate.js" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+  <div class="header">
+    <h1 id="nom-automate">Automate industriel</h1>
+    <div class="subtitle">Adresse IP : <span id="ip-automate"></span></div>
+  </div>
+  <button onclick="window.location='index.html'" class="btn-info">⬅ Retour dashboard</button>
+  <div class="form-net" style="max-width:550px;">
+    <label>Ajouter une variable à surveiller</label>
+    <form id="ajout-variable" autocomplete="off">
+      <input name="nom" placeholder="Nom variable*" required>
+      <input name="registre" placeholder="Registre*" required>
+      <input name="unite" placeholder="Unité">
+      <input name="frequence" type="number" min="1" placeholder="Fréquence (s)*" required>
+      <button class="btn-success" type="submit">➕ Ajouter</button>
+    </form>
+    <div class="form-message"></div>
+  </div>
+  <h2 style="text-align:center;color:#4fdbe7;font-size:1.28em;">🌡 Variables surveillées</h2>
+  <div class="dashboard-row" id="variables-grid"></div>
+</body>
+</html>
