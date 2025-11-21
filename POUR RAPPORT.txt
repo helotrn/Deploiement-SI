@@ -1,0 +1,5 @@
+pour GitHub aide avec l'aide du site officiel avec les lignes de code donnée 
+
+création du backend puis du front
+
+on créer une nouvelle branch GitHub a chaque  cours afin de faire des versions.

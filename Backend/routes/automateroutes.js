@@ -1,4 +1,3 @@
-// Routes REST pour automates – /backend/routes/automateroutes.js
 const router = require('express').Router();
 const ctrl = require('../controllers/automatecontroller');
 router.get('/', ctrl.getAll);
