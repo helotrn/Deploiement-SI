@@ -1,7 +1,6 @@
 const API = 'http://localhost:3000/api';
 
 document.addEventListener("DOMContentLoaded", ()=>{
-  // Affiche l’opérateur
   const op = localStorage.getItem('operateur') || 'Utilisateur';
   document.getElementById('operateur').textContent = op;
   updateAutosGrid();
@@ -12,8 +11,13 @@ document.addEventListener("DOMContentLoaded", ()=>{
     let ok = true;
     ["nom", "adresse_ip"].forEach(field => {
       if(form[field].value.trim() === "") {
-        form[field].classList.add("input-error"); form[field].classList.remove("input-success"); ok = false;
-      } else { form[field].classList.remove("input-error"); form[field].classList.add("input-success"); }
+        form[field].classList.add("input-error");
+        form[field].classList.remove("input-success");
+        ok = false;
+      } else {
+        form[field].classList.remove("input-error");
+        form[field].classList.add("input-success");
+      }
     });
     if(!ok){
       showMessage("Complétez tous les champs obligatoires (nom/IP)", "error");
@@ -25,17 +29,22 @@ document.addEventListener("DOMContentLoaded", ()=>{
       emplacement: form.emplacement.value,
       operateur: localStorage.getItem('operateur')
     };
-    let resp = await fetch(API + '/automates', {
-      method: 'POST',
-      headers: {'Content-Type':'application/json'},
-      body: JSON.stringify(data)
-    });
-    if (resp.ok) {
-      showMessage("Automate ajouté avec succès !","success");
-      form.reset();
-      updateAutosGrid();
-    } else {
-      showMessage("Erreur lors de l’ajout, vérifiez les infos…","error");
+    try {
+      let resp = await fetch(API + '/automates', {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify(data)
+      });
+      let resBody = await resp.json();
+      if (resp.ok) {
+        showMessage("Automate ajouté avec succès !", "success");
+        form.reset();
+        updateAutosGrid();
+      } else {
+        showMessage(resBody.error || "Erreur technique", "error");
+      }
+    } catch (err) {
+      showMessage("Impossible de communiquer avec le serveur.", "error");
     }
   };
 });
@@ -45,7 +54,7 @@ function showMessage(txt, type) {
   msg.textContent = txt;
   msg.className = 'form-message ' + type;
   msg.style.display = 'block';
-  setTimeout(()=>msg.style.display='none',2300);
+  setTimeout(()=>msg.style.display='none', 2500);
 }
 
 async function updateAutosGrid() {
@@ -55,7 +64,7 @@ async function updateAutosGrid() {
   grid.innerHTML = list.length === 0
     ? `<div class="empty-state">Aucun automate connecté.<br>Ajoutez-en un ci-dessus.</div>`
     : list.map((a,i) => `
-        <div class="operateur-card" style="background:linear-gradient(135deg,#257bee 60%,#${a.etat==="ok"?"2dcf8b":"f05951"} 110%);" onclick="window.location='automate.html?id=${a.id}'">
+        <div class="operateur-card" onclick="window.location='automate.html?id=${a.id}'">
           <div class="operateur-icon">🛠️</div>
           <div class="operateur-name">${a.nom}</div>
           <div class="badge ${a.etat === 'ok' ? 'badge-success' : 'badge-danger'}">${a.etat === 'ok' ? 'En ligne' : 'Hors ligne'}</div>

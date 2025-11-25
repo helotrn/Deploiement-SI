@@ -1,0 +1,9 @@
+ajout branch :
+git add branch nom
+git checkout nom
+git add.
+
+
+pour "enrigistrer apres chaque cours "
+git add.
+git commit -m "jjjj"
