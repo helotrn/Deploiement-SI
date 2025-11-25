@@ -1,5 +1,5 @@
-// Connexion à MariaDB – à placer dans /backend/config/database.js
 const mariadb = require('mariadb');
+
 const pool = mariadb.createPool({
   host: process.env.DB_HOST,
   user: process.env.DB_USER,
@@ -8,4 +8,5 @@ const pool = mariadb.createPool({
   port: process.env.DB_PORT,
   connectionLimit: 5
 });
+
 module.exports = pool;

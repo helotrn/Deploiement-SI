@@ -16,3 +16,7 @@ app.use((err, req, res, next)=>{
 
 const PORT = process.env.APP_PORT || 3000;
 app.listen(PORT, ()=>console.log('API supervision backend sur port ' + PORT));
+
+const automateRoutes = require('./routes/automateroutes');
+app.use('/api/automate', automateRoutes);
+

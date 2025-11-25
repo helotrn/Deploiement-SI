@@ -1,21 +1,21 @@
-// Service de lecture sur automate réseau via Modbus TCP
-const Modbus = require('jsmodbus');
-const net = require('net');
+// Backend/services/modbusservice.js
+const ModbusRTU = require('modbus-serial');
+const AUTOMATE_IP = "192.168.1.100"; // METS ton IP automate réel ici !
+const AUTOMATE_PORT = 502;
+const AUTOMATE_UNIT_ID = 1;
 
-async function readModbusRegister(ip, port, unitId, reg, length=1) {
-  return new Promise((resolve,reject)=>{
-    const socket = new net.Socket();
-    const client = new Modbus.client.TCP(socket, unitId);
-    socket.on('connect', ()=>{
-      client.readHoldingRegisters(reg, length)
-        .then(resp=>{
-          socket.end();
-          resolve(resp.response._body.values);
-        })
-        .catch(e=>{ socket.end(); reject(e.message); });
-    });
-    socket.on('error', reject);
-    socket.connect(port, ip);
-  });
+async function readModbusRegister(reg, length = 1) {
+  const client = new ModbusRTU();
+  try {
+    await client.connectTCP(AUTOMATE_IP, { port: AUTOMATE_PORT });
+    client.setID(AUTOMATE_UNIT_ID);
+    const data = await client.readHoldingRegisters(reg, length);
+    client.close();
+    return data.data;
+  } catch (e) {
+    client.close();
+    throw new Error("Erreur Modbus : " + e.message);
+  }
 }
+
 module.exports = { readModbusRegister };

@@ -1,6 +1,10 @@
-const router = require('express').Router();
-const ctrl = require('../controllers/automatecontroller');
-router.get('/', ctrl.getAll);
-router.get('/:id', ctrl.getById);
-router.post('/', ctrl.create);
+const express = require('express');
+const router = express.Router();
+const automateController = require('../controllers/automatecontroller');
+
+router.get('/', automateController.getAll);
+router.get('/:id', automateController.getById);
+router.post('/', automateController.create);
+router.get('/modbus', automateController.getAutomateData);
+
 module.exports = router;

@@ -16,6 +16,7 @@
     "express": "^5.1.0",
     "jsmodbus": "^4.0.10",
     "json2csv": "^6.0.0-alpha.2",
-    "mariadb": "^3.4.5"
+    "mariadb": "^3.4.5",
+    "modbus-serial": "^8.0.23"
   }
 }

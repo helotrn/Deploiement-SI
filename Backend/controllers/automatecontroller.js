@@ -29,3 +29,16 @@ exports.create = async(req,res,next)=>{
     res.status(500).json({error: "Erreur backend : " + e.message});
   }
 };
+const { readModbusRegister } = require('../services/modbusservice');
+
+exports.getAutomateData = async (req, res) => {
+  try {
+    const valeurs = await readModbusRegister(0, 10); // adapte l’adresse et le nombre de registres
+    res.json({ success: true, valeurs });
+  } catch (e) {
+    res.status(500).json({ success: false, error: e.message });
+  }
+};
+exports.getAutomateData = async (req, res) => {
+  // Ton appel à readModbusRegister ou au service correspondant
+};
