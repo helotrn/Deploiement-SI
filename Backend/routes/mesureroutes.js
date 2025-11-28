@@ -1,6 +1,19 @@
-// Routes REST pour mesures et lecture live – /backend/routes/mesureroutes.js
-const router = require('express').Router();
+// Backend/routes/mesureroutes.js
+const express = require('express');
+const router = express.Router();
+
 const ctrl = require('../controllers/mesurecontroller');
-router.get('/', ctrl.getAll);
-router.get('/lire/:id', ctrl.lireEnDirect);
+
+// GET /api/mesures         (?automateId=&limit=)
+router.get('/', ctrl.getAllOrByAutomate);
+
+// GET /api/mesures/ping?ip=...
+router.get('/ping', ctrl.pingAutomate);
+
+// GET /api/mesures/live?ip=...
+router.get('/live', ctrl.liveMeasures);
+
+// POST /api/mesures
+router.post('/', ctrl.create);
+
 module.exports = router;

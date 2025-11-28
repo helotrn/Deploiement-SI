@@ -1,198 +1,347 @@
-:root {
-  --primary: #3a4e67;
-  --bg-dark: #363d4a;      /* gris foncé doux */
-  --bg-card: #414958;      /* carte légèrement plus claire */
-  --valid: #37d897;
-  --danger: #f46a6a;
-  --info: #67d9ee;
-  --badge-success: #2dcf8b;
-  --badge-danger: #f05951;
-  --radius-btn: 2em;
-  --shadow-btn: 0 2px 14px rgba(45,193,139,0.13), 0 7px 32px rgba(58,78,103,0.19);
+/* ------------------ RESET SIMPLE ------------------ */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
 }
 
 body {
-  background: var(--bg-dark);
-  color: #e6eafd;
-  font-family: 'Segoe UI', Arial, sans-serif;
   margin: 0;
-  min-height: 100vh;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI',
+    sans-serif;
+  background-color: #020617;
+  color: #111827;
 }
+
+/* ------------------ LAYOUT GÉNÉRAL ------------------ */
+
+.container {
+  max-width: 1100px;
+  margin: 30px auto;
+  padding: 0 16px;
+}
+
+/* Header */
 
 .header {
-  background: var(--primary);
-  text-align: center;
-  padding: 2.2em .5em 1.4em;
-  border-radius: 0 0 28px 28px;
-  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.34);
-}
-.header h1 {
-  font-size: 2.2em;
-  letter-spacing: .03em;
-  margin-bottom: .06em;
-  color: #fff;
-}
-.header .subtitle {
-  color: #a1c2e7;
-  font-size: 1.1em;
-  opacity: .89;
+  margin-bottom: 20px;
 }
 
-.btn,
+.header-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.subtitle {
+  color: #6b7280;
+  margin-top: 4px;
+}
+
+/* Cartes */
+
+.card {
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 18px 20px;
+  margin-bottom: 20px;
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.1);
+}
+
+/* Boutons */
+
 .btn-primary,
-.btn-info,
-.btn-success,
-.btn-danger {
-  border-radius: var(--radius-btn);
-  font-weight: bold;
-  font-size: 1.1em;
-  padding: 1.1em 2.6em;
-  margin: .6em .8em .6em 0;
-  box-shadow: var(--shadow-btn);
+.btn-secondary {
+  border-radius: 9999px;
+  padding: 8px 18px;
   border: none;
   cursor: pointer;
-  background: var(--info);
-  color: #113c4c;
-  transition: background-color .21s, color .18s, box-shadow .18s, scale .18s;
-  display: inline-block;
+  font-weight: 500;
+  font-size: 0.95rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
 }
-.btn-primary { background: var(--primary); color: #fff; }
-.btn-info    { background: var(--info); color: #113c4c; }
-.btn-success { background: var(--valid); color: #103724; }
-.btn-danger  { background: var(--danger); color: #fff; }
-.btn:hover,
-.btn:focus { filter: brightness(1.09); scale:1.03; }
-.btn:active { box-shadow: 0 1px 5px var(--valid); scale:.97; }
 
-.dashboard-row, .operateurs-grid {
+.btn-primary {
+  background: linear-gradient(135deg, #2563eb, #38bdf8);
+  color: #fff;
+}
+
+.btn-primary:hover {
+  background: linear-gradient(135deg, #1d4ed8, #0ea5e9);
+}
+
+.btn-secondary {
+  background: #0f172a;
+  color: #e5e7eb;
+}
+
+.btn-secondary:hover {
+  background: #1e293b;
+}
+
+/* Formulaires */
+
+.form-inline {
   display: flex;
   flex-wrap: wrap;
-  gap: 26px;
-  justify-content: center;
-  padding: 2em 10px 1em 10px;
+  gap: 16px;
+  margin-bottom: 16px;
 }
-.operateur-card {
-  border-radius: 25px;
-  min-width: 225px; max-width: 310px; min-height: 220px;
-  background: var(--bg-card);
-  box-shadow: 0 8px 32px rgba(33,58,94,0.19);
-  color: #deebfa;
-  text-align: center;
+
+.form-group {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.13em;
-  cursor: pointer;
-  transition: all .17s;
 }
-.operateur-card:hover {
-  transform: scale(1.05);
-  box-shadow: 0 18px 44px #67d9ee3e;
+
+.form-group label {
+  font-size: 0.85rem;
+  margin-bottom: 4px;
+  color: #4b5563;
 }
-.operateur-icon {
-  font-size: 2.7em;
-  margin-bottom: .8em;
+
+.form-group input,
+.form-group select {
+  padding: 6px 10px;
+  border-radius: 8px;
+  border: 1px solid #d1d5db;
+  min-width: 180px;
 }
-.operateur-name {
-  font-weight: bold; margin-bottom: 3px; font-size: 1.14em;
+
+/* Messages */
+
+.message {
+  margin-top: 10px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  font-size: 0.9rem;
 }
-.badge {
-  border-radius: 1.7em;
-  padding: .24em 1.2em;
-  font-size: 1em;
-  font-weight: 700;
-  margin: .18em 0;
-  user-select:none;
+
+.message-success {
+  background: #ecfdf5;
+  color: #16a34a;
 }
-.badge-success { background: var(--badge-success); color: #134d24; }
-.badge-danger  { background: var(--badge-danger); color: #fff; }
-.badge-info    { background: var(--info); color: #0f4356; }
-.form-net {
-  margin: 2.3em auto 2em auto; background: var(--bg-card); max-width:530px;
-  border-radius: 1.4em; padding: 2em; box-shadow: var(--shadow-btn);
+
+.message-error {
+  background: #fef2f2;
+  color: #dc2626;
 }
-input, select {
-  border-radius: 1.3em; border: 2px solid var(--info);
-  background: #373f4d; color: #fff;
-  padding: 1em; font-size: 1.07em;
-  margin: 0 .7em 1.45em 0; width: 92%;
+
+/* Tables */
+
+.pieces-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
 }
-input.input-error {
-  border: 2px solid var(--danger);
-  background: #47293b;
-  color: #ffe5ea;
+
+.pieces-table thead {
+  background: #f3f4f6;
 }
-input.input-success {
-  border: 2px solid var(--valid);
-  background: #163b29;
-  color: #aaffda;
+
+.pieces-table th,
+.pieces-table td {
+  padding: 8px 10px;
+  border-bottom: 1px solid #e5e7eb;
+  text-align: left;
 }
-label { color: #a1c2e7; font-size: 1em; }
-.form-message {
-  padding: 1em;
-  font-size: 1.1em;
-  margin-bottom: 1em;
-  border-radius: 1em;
-  font-weight: 500;
-  display: none;
+
+.pieces-table tbody tr:hover {
+  background: #f9fafb;
 }
-.form-message.error {
-  background: #ffeaea;
-  color: #a22438;
-  box-shadow: 0 0 13px #f46a6a44;
+
+/* États */
+
+.loading {
+  text-align: center;
+  color: #6b7280;
 }
-.form-message.success {
-  background: #e9fff2;
-  color: #169c44;
-  box-shadow: 0 0 9px #2dcf8b22;
-}
-.pieces-table{
-  width:92%;max-width:900px;margin:1.5em auto;border-radius:16px;background:#222b36;color:#fff;
-  box-shadow:0 5px 16px #314b663d; border-collapse:collapse;
-}
-.pieces-table th { background: var(--primary); font-weight:700; }
-.pieces-table td,.pieces-table th{
-  padding:.7em 1.1em;
-  border-bottom:1px solid #36475f;
-}
-.pieces-table tr:last-child td{border-bottom:none;}
-.history-pagination{
-  display:flex;
-  justify-content:center;
-  align-items: center;
-  gap:1em;
-  margin: 1.6em 0 1em 0;
-}
+
 .empty-state {
   text-align: center;
-  font-size: 1.17em;
-  color: #788298;
-  margin: 2.5em 0 1.6em 0;
-}
-@media (max-width:900px){
-  .dashboard-row, .operateurs-grid {flex-direction:column; gap:.8em;}
-  .form-net {max-width:99vw;}
-}
-body.accueil {
-  background: #353a48;
+  color: #6b7280;
 }
 
-.operateur-card.op-card-blue {
-  background: linear-gradient(135deg, #3571e3 70%, #5c96ff 100%);
-  color: #fff;
-  box-shadow: 0 10px 38px #2160d888, 0 2px 12px #5c9cff30;
+.error {
+  color: #b91c1c;
 }
 
-.operateur-card .operateur-name {
-  font-weight: bold;
-  font-size: 1.22em;
-  margin-top: 8px;
-  color: #eaf4ff;
+/* Badges */
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 8px;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  background: #e5e7eb;
+  color: #374151;
 }
 
-.operateur-icon {
-  font-size: 3em !important;
+.badge-success {
+  background: #dcfce7;
+  color: #16a34a;
+}
+
+.badge-error {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+/* Statut global */
+
+.statut-global {
+  padding: 14px 16px;
+  border-radius: 12px;
+  background: #f9fafb;
+}
+
+.statut-global.conforme {
+  border-left: 4px solid #22c55e;
+}
+
+.statut-global.non-conforme {
+  border-left: 4px solid #ef4444;
+}
+
+/* Pastilles de statut */
+
+.status-dot {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  margin-right: 6px;
+}
+
+.status-dot-green {
+  background: #22c55e;
+  box-shadow: 0 0 8px rgba(34, 197, 94, 0.8);
+}
+
+.status-dot-red {
+  background: #ef4444;
+  box-shadow: 0 0 8px rgba(239, 68, 68, 0.8);
+}
+
+/* Liste des alarmes */
+
+.alarms-list .alarm-item {
+  border: 2px solid #dc2626;
+  background: #fee2e2;
+  padding: 16px;
+  border-radius: 8px;
   margin-bottom: 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* ------------------ LOGIN STYLE NETFLIX ------------------ */
+
+.login-body {
+  margin: 0;
+  min-height: 100vh;
+  background: radial-gradient(circle at top, #1d4ed8, #020617 60%);
   color: #fff;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI',
+    sans-serif;
+}
+
+.login-overlay {
+  position: fixed;
+  inset: 0;
+  background: radial-gradient(
+    circle at top,
+    rgba(56, 189, 248, 0.25),
+    transparent 60%
+  );
+  pointer-events: none;
+}
+
+.login-header {
+  padding: 20px 40px;
+}
+
+.login-logo {
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: #38bdf8;
+  text-shadow: 0 0 20px rgba(56, 189, 248, 0.7);
+}
+
+.login-main {
+  max-width: 960px;
+  margin: 40px auto;
+  padding: 20px;
+}
+
+.login-panel h1 {
+  font-size: 2.5rem;
+  margin-bottom: 10px;
+}
+
+.login-subtitle {
+  color: #e5e7eb;
+  margin-bottom: 30px;
+}
+
+/* Cartes profils */
+
+.profile-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 24px;
+  margin-bottom: 30px;
+}
+
+.profile-card {
+  background: rgba(15, 23, 42, 0.9);
+  border-radius: 16px;
+  padding: 26px 18px;
+  text-align: center;
+  cursor: pointer;
+  border: 2px solid transparent;
+  transition: all 0.2s;
+  position: relative;
+  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.8);
+}
+
+.profile-card:hover {
+  border-color: #38bdf8;
+  transform: translateY(-4px);
+  box-shadow: 0 24px 50px rgba(15, 23, 42, 0.9);
+}
+
+.profile-avatar {
+  width: 72px;
+  height: 72px;
+  margin: 0 auto 12px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #38bdf8, #6366f1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2.3rem;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.profile-name {
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.profile-role {
+  font-size: 0.9rem;
+  color: #9ca3af;
+}
+
+/* Carte ajout profil dans l'écran sombre */
+
+.login-card {
+  background: rgba(15, 23, 42, 0.9);
+  color: #e5e7eb;
 }

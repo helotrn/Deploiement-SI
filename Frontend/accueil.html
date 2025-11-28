@@ -1,16 +1,82 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8">
-  <title>Connexion opérateur</title>
-  <link rel="stylesheet" href="css/styles.css">
-  <script defer src="js/accueil.js"></script>
+  <meta charset="UTF-8" />
+  <title>Supervision industrielle – Tableau de bord</title>
+  <link rel="stylesheet" href="css/styles.css" />
+  <script defer src="js/dashboard.js"></script>
 </head>
-<body class="accueil">
-  <div class="header">
-    <h1>🔧 Supervision Industrielle</h1>
-    <div class="subtitle">Quel opérateur prend le contrôle de la supervision aujourd’hui ?</div>
+<body>
+  <div class="container">
+    <header class="header">
+      <div class="header-content">
+        <div>
+          <h1>Tableau de bord</h1>
+          <p class="subtitle" id="current-user-label">
+            Opérateur connecté :
+          </p>
+        </div>
+        <div class="header-actions">
+          <button id="btn-historique" class="btn-secondary">Historique</button>
+          <button id="btn-go-home" class="btn-secondary">Changer de profil</button>
+        </div>
+      </div>
+    </header>
+
+    <!-- Statut global -->
+    <section class="card">
+      <h2>État de la supervision</h2>
+      <div class="statut-global" id="global-status">
+        <h3 id="global-status-title">Calcul en cours...</h3>
+        <p id="global-status-text"></p>
+      </div>
+    </section>
+
+    <!-- Automates -->
+    <section class="card">
+      <h2>Automates industriels</h2>
+
+      <form id="add-automate-form" class="form-inline">
+        <div class="form-group">
+          <label for="auto-nom">Nom de l'automate</label>
+          <input id="auto-nom" name="nom" type="text" required />
+        </div>
+        <div class="form-group">
+          <label for="auto-ip">Adresse IP</label>
+          <input id="auto-ip" name="adresse_ip" type="text" required />
+        </div>
+        <div class="form-group">
+          <label for="auto-emplacement">Emplacement</label>
+          <input id="auto-emplacement" name="emplacement" type="text" />
+        </div>
+        <button type="submit" class="btn-primary">Ajouter l'automate</button>
+      </form>
+
+      <table class="pieces-table" id="automates-table">
+        <thead>
+          <tr>
+            <th>Nom</th>
+            <th>Adresse IP</th>
+            <th>Emplacement</th>
+            <th>Opérateur</th>
+            <th>Statut</th>
+            <th>Dernière mesure</th>
+          </tr>
+        </thead>
+        <tbody id="automates-tbody">
+        </tbody>
+      </table>
+
+      <p id="auto-message" class="message" style="display:none;"></p>
+    </section>
+
+    <!-- Alarmes -->
+    <section class="card">
+      <h2>Alarmes récentes</h2>
+      <div id="alarms-container" class="alarms-list">
+        <!-- rempli par dashboard.js -->
+      </div>
+    </section>
   </div>
-  <div class="operateurs-grid" id="opGrid"></div>
 </body>
 </html>

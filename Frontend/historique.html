@@ -1,28 +1,75 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8">
-  <title>Historique variable</title>
-  <link rel="stylesheet" href="css/styles.css">
+  <meta charset="UTF-8" />
+  <title>Supervision – Historique</title>
+  <link rel="stylesheet" href="css/styles.css" />
   <script defer src="js/historique.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
-  <div class="header">
-    <h1>Historique (détail variable)</h1>
-  </div>
+  <div class="container">
+    <header class="header">
+      <div class="header-content">
+        <div>
+          <h1>Historique des mesures</h1>
+          <p class="subtitle" id="current-user-label">
+            Opérateur connecté :
+          </p>
+        </div>
+        <div class="header-actions">
+          <button id="btn-dashboard" class="btn-secondary">Tableau de bord</button>
+          <button id="btn-go-home" class="btn-secondary">Changer de profil</button>
+        </div>
+      </div>
+    </header>
 
-  <div class="form-net" style="max-width:540px;">
-    <label>Filtrer par plage de dates</label>
-    <input id="debut" type="date">
-    <input id="fin" type="date">
-    <button id="filtrer" class="btn-primary" style="width:80%;">Filtrer</button>
-    <button id="exporter" class="btn-success" style="width:80%;">Exporter CSV</button>
+    <!-- Filtres -->
+    <section class="card">
+      <h2>Filtres</h2>
+      <form id="filters-form" class="form-inline">
+        <div class="form-group">
+          <label for="filter-automate">Automate</label>
+          <select id="filter-automate" name="automateId">
+            <option value="">Tous les automates</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="filter-from">Du</label>
+          <input id="filter-from" type="datetime-local" />
+        </div>
+        <div class="form-group">
+          <label for="filter-to">Au</label>
+          <input id="filter-to" type="datetime-local" />
+        </div>
+        <button type="submit" class="btn-primary">Actualiser</button>
+      </form>
+    </section>
+
+    <!-- Tableau historique -->
+    <section class="card">
+      <h2>Mesures historisées</h2>
+      <table class="pieces-table">
+        <thead>
+          <tr>
+            <th>Date / Heure</th>
+            <th>Automate</th>
+            <th>Température (°C)</th>
+            <th>Pression (bar)</th>
+            <th>Valeur brute</th>
+            <th>Alarme</th>
+          </tr>
+        </thead>
+        <tbody id="history-tbody">
+        </tbody>
+      </table>
+      <p id="history-message" class="message" style="display:none;"></p>
+    </section>
+
+    <!-- Alarmes -->
+    <section class="card">
+      <h2>Alarmes</h2>
+      <div id="alarms-container" class="alarms-list"></div>
+    </section>
   </div>
-  <div class="history-pagination" style="margin-top:1.2em">
-    <button class="btn-info" id="prevDay">⬅ Précédent</button>
-    <button class="btn-info" id="nextDay">Suivant ➡</button>
-  </div>
-  <div id="histo-content"></div>
 </body>
 </html>

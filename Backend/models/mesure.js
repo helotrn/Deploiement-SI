@@ -1,27 +1,50 @@
-// Accès table "mesures" 
+// Backend/models/mesure.js
 const pool = require('../config/database');
+
 module.exports = {
-  async getAll({ variable_id, date_debut, date_fin, limit }) {
+  async getAll() {
     const conn = await pool.getConnection();
     try {
-      let sql = 'SELECT * FROM mesures WHERE 1';
-      const params = [];
-      if (variable_id) { sql += ' AND variable_id=?'; params.push(variable_id);}
-      if (date_debut) { sql += ' AND horodatage >= ?'; params.push(date_debut);}
-      if (date_fin)   { sql += ' AND horodatage <= ?'; params.push(date_fin);}
-      sql += ' ORDER BY horodatage DESC';
-      if (limit) sql += ' LIMIT ' + parseInt(limit,10);
-      return await conn.query(sql, params);
-    } finally { conn.release(); }
+      const rows = await conn.query('SELECT * FROM mesures ORDER BY horodatage DESC');
+      return rows;
+    } finally {
+      conn.release();
+    }
   },
-  async add(variable_id, valeur) {
+
+  async getByAutomate(idAutomate, limit) {
     const conn = await pool.getConnection();
     try {
-      const result = await conn.query(
-        'INSERT INTO mesures (variable_id, valeur, horodatage) VALUES (?, ?, NOW())',
-        [variable_id, valeur]
+      const rows = await conn.query(
+        'SELECT * FROM mesures WHERE id_automate = ? ORDER BY horodatage DESC LIMIT ?',
+        [idAutomate, limit]
       );
-      return result.insertId;
-    } finally { conn.release(); }
+      return rows;
+    } finally {
+      conn.release();
+    }
+  },
+
+  async create(data) {
+    const conn = await pool.getConnection();
+    try {
+      const {
+        id_automate,
+        id_variable,
+        valeur,
+        temperature,
+        pression,
+        alarme
+      } = data;
+
+      const res = await conn.query(
+        `INSERT INTO mesures (id_automate, id_variable, valeur, temperature, pression, alarme)
+         VALUES (?, ?, ?, ?, ?, ?)`,
+        [id_automate, id_variable, valeur, temperature, pression, alarme ? 1 : 0]
+      );
+      return res.insertId;
+    } finally {
+      conn.release();
+    }
   }
 };
