@@ -2,43 +2,37 @@ const Automate = require('../models/automate');
 
 exports.getAll = async (req, res, next) => {
   try {
-    res.json(await Automate.getAll());
-  } catch(e) {
-    next(e);
+    const rows = await Automate.getAll();
+    res.json(rows);
+  } catch (e) {
+    console.error('Erreur getAll automates :', e.message);
+    res.status(500).json({ message: e.message });
   }
 };
 
-exports.getById = async(req,res,next)=>{
+exports.getById = async (req, res, next) => {
   try {
-    res.json(await Automate.getById(req.params.id));
-  } catch(e) {
-    next(e);
+    const automate = await Automate.getById(req.params.id);
+    if (!automate) {
+      return res.status(404).json({ message: 'Automate non trouvé' });
+    }
+    res.json(automate);
+  } catch (e) {
+    console.error('Erreur getById automate :', e.message);
+    res.status(500).json({ message: e.message });
   }
 };
 
-exports.create = async(req,res,next)=>{
+exports.create = async (req, res, next) => {
   try {
     const { nom, adresse_ip, emplacement, operateur } = req.body;
-    if(!nom || !adresse_ip || !operateur) {
-      return res.status(400).json({error: "Champs obligatoires manquants"});
+    if (!nom || !adresse_ip || !operateur) {
+      return res.status(400).json({ message: 'Champs obligatoires manquants' });
     }
     const id = await Automate.create({ nom, adresse_ip, emplacement, operateur });
     res.status(201).json({ id });
-  } catch(e) {
-    console.error("Erreur backend : ", e.message);
-    res.status(500).json({error: "Erreur backend : " + e.message});
-  }
-};
-const { readModbusRegister } = require('../services/modbusservice');
-
-exports.getAutomateData = async (req, res) => {
-  try {
-    const valeurs = await readModbusRegister(0, 10); // adapte l’adresse et le nombre de registres
-    res.json({ success: true, valeurs });
   } catch (e) {
-    res.status(500).json({ success: false, error: e.message });
+    console.error('Erreur create automate :', e.message);
+    res.status(500).json({ message: e.message });
   }
-};
-exports.getAutomateData = async (req, res) => {
-  // Ton appel à readModbusRegister ou au service correspondant
 };

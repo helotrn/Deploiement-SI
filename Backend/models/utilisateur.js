@@ -4,7 +4,7 @@ module.exports = {
   async getAll() {
     const conn = await pool.getConnection();
     try {
-      const rows = await conn.query('SELECT * FROM automates');
+      const rows = await conn.query('SELECT * FROM utilisateurs');
       return rows;
     } finally {
       conn.release();
@@ -15,7 +15,7 @@ module.exports = {
     const conn = await pool.getConnection();
     try {
       const rows = await conn.query(
-        'SELECT * FROM automates WHERE id = ?',
+        'SELECT * FROM utilisateurs WHERE id = ?',
         [id]
       );
       return rows[0] || null;
@@ -27,10 +27,10 @@ module.exports = {
   async create(data) {
     const conn = await pool.getConnection();
     try {
-      const { nom, adresse_ip, emplacement, operateur } = data;
+      const { nom, email, role } = data;
       const res = await conn.query(
-        'INSERT INTO automates (nom, adresse_ip, emplacement, operateur) VALUES (?, ?, ?, ?)',
-        [nom, adresse_ip, emplacement || null, operateur]
+        'INSERT INTO utilisateurs (nom, email, role) VALUES (?, ?, ?)',
+        [nom, email || null, role || null]
       );
       return res.insertId;
     } finally {
