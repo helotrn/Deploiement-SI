@@ -2,8 +2,10 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8" />
-  <title>Supervision – Historique</title>
+  <title>Historique des mesures</title>
   <link rel="stylesheet" href="css/styles.css" />
+  <!-- Chart.js depuis CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script defer src="js/historique.js"></script>
 </head>
 <body>
@@ -12,63 +14,50 @@
       <div class="header-content">
         <div>
           <h1>Historique des mesures</h1>
-          <p class="subtitle" id="current-user-label">
-            Opérateur connecté :
-          </p>
+          <p class="subtitle">Visualisation des courbes par automate et variable.</p>
         </div>
         <div class="header-actions">
           <button id="btn-dashboard" class="btn-secondary">Tableau de bord</button>
-          <button id="btn-go-home" class="btn-secondary">Changer de profil</button>
         </div>
       </div>
     </header>
 
-    <!-- Filtres -->
     <section class="card">
-      <h2>Filtres</h2>
-      <form id="filters-form" class="form-inline">
+      <h2>Filtre</h2>
+      <div class="form-inline">
         <div class="form-group">
-          <label for="filter-automate">Automate</label>
-          <select id="filter-automate" name="automateId">
-            <option value="">Tous les automates</option>
-          </select>
+          <label for="select-automate">Automate</label>
+          <select id="select-automate"></select>
         </div>
         <div class="form-group">
-          <label for="filter-from">Du</label>
-          <input id="filter-from" type="datetime-local" />
+          <label for="select-variable">Variable</label>
+          <select id="select-variable"></select>
         </div>
-        <div class="form-group">
-          <label for="filter-to">Au</label>
-          <input id="filter-to" type="datetime-local" />
-        </div>
-        <button type="submit" class="btn-primary">Actualiser</button>
-      </form>
+        <button id="btn-load" class="btn-primary">Charger l'historique</button>
+        <button id="btn-export" class="btn-secondary">Exporter en CSV</button>
+      </div>
+      <p id="hist-message" class="message" style="display:none;"></p>
     </section>
 
-    <!-- Tableau historique -->
     <section class="card">
-      <h2>Mesures historisées</h2>
-      <table class="pieces-table">
+      <h2>Courbe des mesures</h2>
+      <div class="chart-wrapper">
+        nvas id="mesures-chart" height="1200"></canvas>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Détails des mesures</h2>
+      <table class="pieces-table" id="table-mesures">
         <thead>
           <tr>
-            <th>Date / Heure</th>
-            <th>Automate</th>
-            <th>Température (°C)</th>
-            <th>Pression (bar)</th>
-            <th>Valeur brute</th>
-            <th>Alarme</th>
+            <th>Date / heure</th>
+            <th>Valeur</th>
           </tr>
         </thead>
-        <tbody id="history-tbody">
+        <tbody id="mesures-tbody">
         </tbody>
       </table>
-      <p id="history-message" class="message" style="display:none;"></p>
-    </section>
-
-    <!-- Alarmes -->
-    <section class="card">
-      <h2>Alarmes</h2>
-      <div id="alarms-container" class="alarms-list"></div>
     </section>
   </div>
 </body>

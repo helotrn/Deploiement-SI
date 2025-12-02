@@ -1,103 +1,92 @@
 // Backend/controllers/mesurecontroller.js
+
 const Mesure = require('../models/mesure');
-const ModbusService = require('../services/modbusservice');
-const pool = require('../config/database');
+const Variable = require('../models/variable');
+const Automate = require('../models/automate');
 
 module.exports = {
-  // GET /api/mesures  (toutes ou filtrées)
-  async getAllOrByAutomate(req, res) {
+  // GET /api/mesures?variable_id=...&limit=100
+  async getByVariable(req, res) {
     try {
-      const automateId = req.query.automateId;
-      const limit = parseInt(req.query.limit || '50', 10);
-      const from = req.query.from;
-      const to = req.query.to;
-
-      // Si on veut des filtres plus avancés (historique)
-      let sql = 'SELECT * FROM mesures WHERE 1=1';
-      const params = [];
-
-      if (automateId) {
-        sql += ' AND id_automate = ?';
-        params.push(automateId);
-      }
-      if (from) {
-        sql += ' AND horodatage >= ?';
-        params.push(from);
-      }
-      if (to) {
-        sql += ' AND horodatage <= ?';
-        params.push(to);
+      const { variable_id, limit } = req.query;
+      if (!variable_id) {
+        return res.status(400).json({ message: 'variable_id est obligatoire' });
       }
 
-      sql += ' ORDER BY horodatage DESC';
+      const max = Number(limit) || 100;
+      const mesures = await Mesure.getByVariable(variable_id, max);
 
-      // Si pas de filtre de dates, on limite le nombre de lignes
-      if (!from && !to) {
-        sql += ' LIMIT ?';
-        params.push(limit);
-      }
-
-      const conn = await pool.getConnection();
-      try {
-        const rows = await conn.query(sql, params);
-        conn.release();
-        return res.json(rows);
-      } catch (err) {
-        conn.release();
-        throw err;
-      }
+      res.json(mesures);
     } catch (err) {
-      console.error('Erreur getAllOrByAutomate mesures:', err);
+      console.error('Erreur getByVariable mesures:', err);
       res.status(500).json({ message: 'Erreur serveur mesures' });
     }
   },
 
-  // POST /api/mesures
-  async create(req, res) {
+  // GET /api/mesures/par-automate?automate_id=...
+  async getLastByAutomate(req, res) {
     try {
-      const id = await Mesure.create(req.body);
-      res.status(201).json({ id });
+      const { automate_id } = req.query;
+      if (!automate_id) {
+        return res.status(400).json({ message: 'automate_id est obligatoire' });
+      }
+
+      const variables = await Variable.getAll({ automate_id });
+      if (!variables.length) {
+        return res.json([]);
+      }
+
+      const result = [];
+      for (const v of variables) {
+        const last = await Mesure.getLastForVariable(v.id);
+        if (last) {
+          result.push({
+            variable_id: v.id,
+            variable_nom: v.nom,
+            type: v.type,
+            unite: v.unite,
+            valeur: last.valeur,
+            date_mesure: last.date_mesure
+          });
+        }
+      }
+
+      res.json(result);
     } catch (err) {
-      console.error('Erreur create mesure:', err);
+      console.error('Erreur getLastByAutomate:', err);
       res.status(500).json({ message: 'Erreur serveur mesures' });
     }
   },
 
-  // GET /api/mesures/ping?ip=...
-  async pingAutomate(req, res) {
-    const ip = req.query.ip;
-    if (!ip) {
-      return res.status(400).json({ online: false, message: 'ip requise' });
-    }
-
+  // GET /api/exports/csv?variable_id=...
+  async exportCSV(req, res) {
     try {
-      const online = await ModbusService.ping(ip);
-      res.json({ online: !!online });
+      const { variable_id } = req.query;
+      if (!variable_id) {
+        return res.status(400).json({ message: 'variable_id est obligatoire' });
+      }
+
+      const variable = await Variable.getById(variable_id);
+      if (!variable) {
+        return res.status(404).json({ message: 'Variable non trouvée' });
+      }
+
+      const mesures = await Mesure.getByVariable(variable_id, 1000);
+
+      let csv = 'date_mesure;valeur\n';
+      for (const m of mesures) {
+        csv += `${m.date_mesure};${m.valeur}\n`;
+      }
+
+      res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+      res.setHeader(
+        'Content-Disposition',
+        `attachment; filename="mesures_variable_${variable_id}.csv"`
+      );
+      res.send(csv);
     } catch (err) {
-      console.error('Erreur ping automate:', err);
-      res.json({ online: false });
-    }
-  },
-
-  // GET /api/mesures/live?ip=...
-  async liveMeasures(req, res) {
-    const ip = req.query.ip;
-    if (!ip) {
-      return res.status(400).json({ message: 'ip requise' });
-    }
-
-    try {
-      // À adapter avec les VRAIES adresses de registres de ton automate
-      const tempData = await ModbusService.readModbusRegister(ip, 100, 1);
-      const pressData = await ModbusService.readModbusRegister(ip, 110, 1);
-
-      res.json({
-        temperature: tempData[0],
-        pression: pressData[0]
-      });
-    } catch (err) {
-      console.error('Erreur liveMeasures:', err);
-      res.status(500).json({ message: 'Erreur lecture automate' });
+      console.error('Erreur exportCSV:', err);
+      res.status(500).json({ message: 'Erreur serveur export CSV' });
     }
   }
 };

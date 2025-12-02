@@ -2,29 +2,62 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
-  <title>Automate | Supervision variable</title>
-  <link rel="stylesheet" href="css/styles.css">
-  <script src="js/automate.js" defer></script>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <title>Configuration automate</title>
+  <link rel="stylesheet" href="styles.css">
 </head>
-<body>
-  <div class="header">
-    <h1 id="nom-automate">Automate industriel</h1>
-    <div class="subtitle">Adresse IP : <span id="ip-automate"></span></div>
-  </div>
-  <button onclick="window.location='index.html'" class="btn-info">⬅ Retour dashboard</button>
-  <div class="form-net" style="max-width:550px;">
-    <label>Ajouter une variable à surveiller</label>
-    <form id="ajout-variable" autocomplete="off">
-      <input name="nom" placeholder="Nom variable*" required>
-      <input name="registre" placeholder="Registre*" required>
-      <input name="unite" placeholder="Unité">
-      <input name="frequence" type="number" min="1" placeholder="Fréquence (s)*" required>
-      <button class="btn-success" type="submit">➕ Ajouter</button>
-    </form>
-    <div class="form-message"></div>
-  </div>
-  <h2 style="text-align:center;color:#4fdbe7;font-size:1.28em;">🌡 Variables surveillées</h2>
-  <div class="dashboard-row" id="variables-grid"></div>
+<body class="page-automate">
+  <header class="topbar">
+    <h1>Configuration de l'automate</h1>
+    <nav>
+      <a href="accueil.html">Accueil</a>
+      <a href="historique.html">Historique</a>
+    </nav>
+  </header>
+
+  <main class="container">
+    <section class="card">
+      <h2>Informations automate</h2>
+      <p id="automate-info">Chargement...</p>
+    </section>
+
+    <section class="card">
+      <h2>Variables à surveiller</h2>
+
+      <form id="variable-form" class="form-inline">
+        <input type="text" id="var-nom" placeholder="Nom (Température, Vitesse, Humidité…)" required>
+
+        <select id="var-type" required>
+          <option value="">Type logique</option>
+          <option value="temperature">Température</option>
+          <option value="humidite">Humidité</option>
+          <option value="vitesse">Vitesse</option>
+          <option value="autre">Autre</option>
+        </select>
+
+        <input type="text" id="var-adresse" placeholder="Adresse Modbus (ex : MW400)" required>
+        <input type="text" id="var-unite" placeholder="Unité (°C, %, m/min…)" required>
+
+        <button type="submit">Ajouter la variable</button>
+      </form>
+
+      <p id="variable-message" class="message"></p>
+
+      <table class="table" id="variables-table">
+        <thead>
+          <tr>
+            <th>Nom</th>
+            <th>Type</th>
+            <th>Adresse Modbus</th>
+            <th>Unité</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- lignes insérées en JS -->
+        </tbody>
+      </table>
+    </section>
+  </main>
+
+  <script src="automate.js"></script>
 </body>
 </html>

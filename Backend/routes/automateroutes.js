@@ -1,14 +1,18 @@
+// Backend/routes/automateroutes.js
 const express = require('express');
 const router = express.Router();
-const ctrl = require('../controllers/automatecontroller');
+const automateController = require('../controllers/automatecontroller');
 
-// GET /api/automates
-router.get('/', ctrl.getAll);
+// Liste de tous les automates
+router.get('/', automateController.getAll);
 
-// GET /api/automates/:id
-router.get('/:id', ctrl.getById);
+// Un automate par id
+router.get('/:id', automateController.getById);
 
-// POST /api/automates
-router.post('/', ctrl.create);
+// Création
+router.post('/', automateController.create);
+
+// Suppression
+router.delete('/:id', automateController.remove);
 
 module.exports = router;

@@ -1,94 +1,126 @@
-// Automate: dashboard cartes variables, validation, historiques, SCADA moderne
-const API = 'http://localhost:3000/api';
-const idAutomate = new URLSearchParams(window.location.search).get("id");
+// Frontend/automate.js
+const API_BASE = 'http://localhost:3000/api';
+
+function getQueryParam(name) {
+  const params = new URLSearchParams(window.location.search);
+  return params.get(name);
+}
+
+async function fetchJSON(url, options = {}) {
+  const res = await fetch(url, {
+    headers: { 'Content-Type': 'application/json' },
+    ...options
+  });
+  if (!res.ok) {
+    const txt = await res.text();
+    throw new Error(`HTTP ${res.status} : ${txt}`);
+  }
+  return res.json();
+}
+
+let automateId = null;
 
 async function chargerAutomate() {
-  const automate = await fetch(API + '/automates/' + idAutomate).then(r=>r.json());
-  document.getElementById('nom-automate').textContent = automate.nom;
-  document.getElementById('ip-automate').textContent = automate.adresse_ip;
+  const infoElt = document.getElementById('automate-info');
+
+  try {
+    const auto = await fetchJSON(`${API_BASE}/automates/${automateId}`);
+    infoElt.textContent = `${auto.nom} – IP ${auto.adresse_ip} – ${auto.emplacement || '—'}`;
+  } catch (err) {
+    console.error(err);
+    infoElt.textContent = "Impossible de charger l'automate.";
+  }
+}
+
+function extraireAdresseDepuisDescription(desc) {
+  const parts = (desc || '').split('|');
+  return parts[1] || '';
 }
 
 async function chargerVariables() {
-  const res = await fetch(API + `/variables?automate_id=${idAutomate}`);
-  const v = await res.json();
-  const grid = document.getElementById('variables-grid');
-  grid.innerHTML = v.length === 0 
-    ? `<div class="empty-state">Aucune variable surveillée. Ajoutez-en une ci-dessus.</div>`
-    : v.map(variable => `<div class="operateur-card">
-      <div class="operateur-icon">🌡️</div>
-      <div class="operateur-name">${variable.nom}<span class="badge badge-info">${variable.unite||''}</span></div>
-      <div><span style="opacity:.72;">Registre</span>: <b>${variable.registre}</b></div>
-      <div><span style="opacity:.72;">Fréquence</span>: <b>${variable.frequence}s</b></div>
-      <div class="badge badge-success" id="valeur-${variable.id}">–</div>
-      <canvas id="graph-${variable.id}" height="110"></canvas>
-      <div style="opacity:.7; font-size:.92em; margin-top:.57em;">Dernière modif par : ${variable.operateur || "—"}</div>
-      <button class="btn-info btn-historique" onclick="voirHistorique(${variable.id})" style="width:95%;margin-top:1.2em;">📈 Historique variable</button>
-    </div>`).join('');
-  v.forEach(refreshValeurEtGraphe);
-}
-function voirHistorique(variableId) {
-  window.location = "historique.html?var="+variableId;
+  const tbody = document.querySelector('#variables-table tbody');
+  tbody.innerHTML = '';
+
+  try {
+    const vars = await fetchJSON(`${API_BASE}/variables?automate_id=${automateId}`);
+
+    vars.forEach(v => {
+      const tr = document.createElement('tr');
+
+      const tdNom = document.createElement('td');
+      tdNom.textContent = v.nom;
+
+      const tdType = document.createElement('td');
+      tdType.textContent = v.type;
+
+      const tdAdr = document.createElement('td');
+      tdAdr.textContent = extraireAdresseDepuisDescription(v.description);
+
+      const tdUnite = document.createElement('td');
+      tdUnite.textContent = v.unite || '';
+
+      tr.appendChild(tdNom);
+      tr.appendChild(tdType);
+      tr.appendChild(tdAdr);
+      tr.appendChild(tdUnite);
+
+      tbody.appendChild(tr);
+    });
+  } catch (err) {
+    console.error(err);
+    const msg = document.getElementById('variable-message');
+    msg.textContent = "Erreur lors du chargement des variables.";
+    msg.classList.add('error');
+  }
 }
 
-async function refreshValeurEtGraphe(v) {
-  let m = await fetch(API+`/mesures?variable_id=${v.id}&limit=15`).then(r=>r.json());
-  document.getElementById('valeur-'+v.id).textContent = m[0]?m[0].valeur:'–';
-  let ctx = document.getElementById('graph-'+v.id).getContext('2d');
-  new Chart(ctx, {
-    type:'line',
-    data: {labels: m.map(x=>x.horodatage.substr(11,5)), datasets:[{data: m.map(x=>x.valeur), borderColor:'#37d897', tension:.18}] },
-    options:{responsive:true,scales:{y:{beginAtZero:true}},plugins:{legend:{display:false}}}
-  });
+async function onSubmitVariable(event) {
+  event.preventDefault();
+  const msg = document.getElementById('variable-message');
+  msg.textContent = '';
+  msg.className = 'message';
+
+  const nom = document.getElementById('var-nom').value.trim();
+  const type = document.getElementById('var-type').value;
+  const adresse = document.getElementById('var-adresse').value.trim();
+  const unite = document.getElementById('var-unite').value.trim();
+
+  if (!nom || !type || !adresse || !unite) {
+    msg.textContent = 'Tous les champs sont obligatoires.';
+    msg.classList.add('error');
+    return;
+  }
+
+  const description = `${automateId}|${adresse}`;
+
+  try {
+    await fetchJSON(`${API_BASE}/variables`, {
+      method: 'POST',
+      body: JSON.stringify({ nom, type, unite, description })
+    });
+
+    msg.textContent = 'Variable ajoutée.';
+    msg.classList.add('success');
+
+    document.getElementById('variable-form').reset();
+    await chargerVariables();
+  } catch (err) {
+    console.error(err);
+    msg.textContent = "Erreur lors de l'ajout de la variable.";
+    msg.classList.add('error');
+  }
 }
 
-document.addEventListener("DOMContentLoaded", ()=>{
+document.addEventListener('DOMContentLoaded', () => {
+  automateId = getQueryParam('id');
+  if (!automateId) {
+    alert("Aucun id d'automate fourni dans l'URL.");
+    return;
+  }
+
   chargerAutomate();
   chargerVariables();
-  document.getElementById('ajout-variable').onsubmit = async function(e) {
-    e.preventDefault();
-    let form = e.target;
-    let ok = true;
-    ["nom", "registre", "frequence"].forEach(field => {
-      if(form[field].value.trim() === "") {
-        form[field].classList.add("input-error");
-        form[field].classList.remove("input-success");
-        ok = false;
-      } else {
-        form[field].classList.remove("input-error");
-        form[field].classList.add("input-success");
-      }
-    });
-    if(!ok) {
-      showMessage("Veuillez remplir tous les champs obligatoires.", "error");
-      return;
-    }
-    let data = {
-      nom: form.nom.value,
-      registre: form.registre.value,
-      unite: form.unite.value,
-      frequence: form.frequence.value,
-      automate_id: idAutomate,
-      operateur: localStorage.getItem('operateur')
-    };
-    let resp = await fetch(API + '/variables', {
-      method: 'POST',
-      headers: { 'Content-Type':'application/json' },
-      body: JSON.stringify(data)
-    });
-    if(resp.ok){
-      showMessage("Variable ajoutée !", "success");
-      form.reset();
-      chargerVariables();
-    } else {
-      showMessage("Erreur lors de l’ajout.", "error");
-    }
-  };
-});
 
-function showMessage(txt, type) {
-  let msg = document.querySelector('.form-message');
-  msg.textContent = txt;
-  msg.className = 'form-message ' + type;
-  msg.style.display = 'block';
-  setTimeout(()=>msg.style.display='none',2000);
-}
+  const form = document.getElementById('variable-form');
+  form.addEventListener('submit', onSubmitVariable);
+});

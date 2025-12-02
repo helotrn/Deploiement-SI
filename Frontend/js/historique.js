@@ -1,9 +1,7 @@
+// js/historique.js
 const API_BASE = 'http://localhost:3000/api';
 
-function getCurrentUser() {
-  const raw = localStorage.getItem('currentUser');
-  return raw ? JSON.parse(raw) : null;
-}
+let chartInstance = null;
 
 async function fetchJSON(url, options = {}) {
   const res = await fetch(url, {
@@ -17,141 +15,197 @@ async function fetchJSON(url, options = {}) {
   return res.json();
 }
 
-async function loadAutomatesForFilter() {
-  const select = document.getElementById('filter-automate');
-  try {
-    const automates = await fetchJSON(`${API_BASE}/automates`);
-    automates.forEach(a => {
-      const opt = document.createElement('option');
-      opt.value = a.id;
-      opt.textContent = `${a.nom} (${a.adresse_ip})`;
-      select.appendChild(opt);
-    });
-  } catch (err) {
-    console.error('Erreur chargement automates pour filtre:', err);
+function getQueryParam(name) {
+  const params = new URLSearchParams(window.location.search);
+  return params.get(name);
+}
+
+async function chargerAutomates(selectElt, selectedId) {
+  const automates = await fetchJSON(`${API_BASE}/automates`);
+  selectElt.innerHTML = '';
+
+  if (!automates.length) {
+    const opt = document.createElement('option');
+    opt.value = '';
+    opt.textContent = 'Aucun automate';
+    selectElt.appendChild(opt);
+    return;
   }
+
+  automates.forEach(a => {
+    const opt = document.createElement('option');
+    opt.value = a.id;
+    opt.textContent = `${a.nom} (${a.adresse_ip})`;
+    if (String(a.id) === String(selectedId)) {
+      opt.selected = true;
+    }
+    selectElt.appendChild(opt);
+  });
 }
 
-// Construit l’URL /api/mesures?automateId=&from=&to=
-function buildHistoryUrl() {
-  const automateId = document.getElementById('filter-automate').value;
-  const from = document.getElementById('filter-from').value;
-  const to = document.getElementById('filter-to').value;
+async function chargerVariables(automateId, selectElt) {
+  selectElt.innerHTML = '';
+  if (!automateId) return;
 
-  const params = new URLSearchParams();
-  if (automateId) params.set('automateId', automateId);
-  if (from) params.set('from', from);
-  if (to) params.set('to', to);
+  const vars = await fetchJSON(`${API_BASE}/variables?automate_id=${automateId}`);
 
-  const qs = params.toString();
-  return qs ? `${API_BASE}/mesures?${qs}` : `${API_BASE}/mesures`;
+  if (!vars.length) {
+    const opt = document.createElement('option');
+    opt.value = '';
+    opt.textContent = 'Aucune variable';
+    selectElt.appendChild(opt);
+    return;
+  }
+
+  vars.forEach(v => {
+    const opt = document.createElement('option');
+    opt.value = v.id;
+    opt.textContent = `${v.nom} (${v.type}${v.unite ? ' ' + v.unite : ''})`;
+    selectElt.appendChild(opt);
+  });
 }
 
-function renderAlarmBadge(alarme) {
-  if (!alarme) return '<span class="badge">OK</span>';
-  return '<span class="badge badge-error">ALERTE</span>';
-}
-
-function renderHistoryRows(mesures) {
-  const tbody = document.getElementById('history-tbody');
+function majTableau(mesures) {
+  const tbody = document.getElementById('mesures-tbody');
   tbody.innerHTML = '';
 
   if (!mesures.length) {
-    tbody.innerHTML =
-      '<tr><td colspan="6" class="empty-state">Aucune mesure trouvée pour ces filtres.</td></tr>';
+    const tr = document.createElement('tr');
+    const td = document.createElement('td');
+    td.colSpan = 2;
+    td.textContent = 'Aucune mesure disponible.';
+    tr.appendChild(td);
+    tbody.appendChild(tr);
     return;
   }
 
   mesures.forEach(m => {
     const tr = document.createElement('tr');
-    const date = new Date(m.horodatage || m.date_mesure || m.date || m.created_at);
-    tr.innerHTML = `
-      <td>${date.toLocaleString()}</td>
-      <td>${m.nom_automate || m.id_automate}</td>
-      <td>${m.temperature ?? '-'}</td>
-      <td>${m.pression ?? '-'}</td>
-      <td>${m.valeur ?? '-'}</td>
-      <td>${renderAlarmBadge(m.alarme)}</td>
-    `;
+    const tdDate = document.createElement('td');
+    const tdVal = document.createElement('td');
+
+    tdDate.textContent = new Date(m.date_mesure).toLocaleString();
+    tdVal.textContent = m.valeur;
+
+    tr.appendChild(tdDate);
+    tr.appendChild(tdVal);
     tbody.appendChild(tr);
   });
 }
 
-function renderAlarms(mesures) {
-  const container = document.getElementById('alarms-container');
-  container.innerHTML = '';
+function majGraphique(mesures) {
+  const ctx = document.getElementById('mesures-chart').getContext('2d');
 
-  const alarms = mesures.filter(m => m.alarme);
-  if (!alarms.length) {
-    container.innerHTML =
-      '<div class="empty-state">Aucune alarme enregistrée sur la période sélectionnée.</div>';
+  if (!mesures.length) {
+    if (chartInstance) {
+      chartInstance.destroy();
+      chartInstance = null;
+    }
     return;
   }
 
-  alarms.forEach(m => {
-    const date = new Date(m.horodatage || m.date_mesure || m.date || m.created_at);
-    const div = document.createElement('div');
-    div.className = 'alarm-item';
-    div.innerHTML = `
-      <div>
-        <strong>${date.toLocaleString()}</strong> – Automate ${
-          m.nom_automate || m.id_automate
+  const labels = mesures
+    .map(m => new Date(m.date_mesure))
+    .sort((a, b) => a - b)
+    .map(d => d.toLocaleTimeString());
+
+  const dataPoints = mesures
+    .sort((a, b) => new Date(a.date_mesure) - new Date(b.date_mesure))
+    .map(m => m.valeur);
+
+  if (chartInstance) {
+    chartInstance.destroy();
+  }
+
+  chartInstance = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [
+        {
+          label: 'Valeur',
+          data: dataPoints,
+          borderColor: '#2596ff',
+          backgroundColor: 'rgba(37,150,255,0.15)',
+          tension: 0.2,
+          pointRadius: 2
         }
-        <br/>
-        Température : <strong>${m.temperature ?? '-'}</strong> °C,
-        Pression : <strong>${m.pression ?? '-'}</strong> bar
-      </div>
-      <span class="badge badge-error">ALERTE</span>
-    `;
-    container.appendChild(div);
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      scales: {
+        x: {
+          title: { display: true, text: 'Temps' }
+        },
+        y: {
+          title: { display: true, text: 'Valeur' },
+          beginAtZero: false
+        }
+      },
+      plugins: {
+        legend: { display: false }
+      }
+    }
   });
 }
 
-async function loadHistory(e) {
-  if (e) e.preventDefault();
-  const msg = document.getElementById('history-message');
+async function chargerHistorique() {
+  const msg = document.getElementById('hist-message');
   msg.style.display = 'none';
 
-  const tbody = document.getElementById('history-tbody');
-  tbody.innerHTML =
-    '<tr><td colspan="6" class="loading">Chargement des mesures...</td></tr>';
+  const varId = document.getElementById('select-variable').value;
+  if (!varId) {
+    msg.textContent = 'Sélectionne une variable.';
+    msg.className = 'message message-error';
+    msg.style.display = 'block';
+    return;
+  }
 
   try {
-    const url = buildHistoryUrl();
-    const mesures = await fetchJSON(url);
-    renderHistoryRows(mesures);
-    renderAlarms(mesures);
+    const mesures = await fetchJSON(
+      `${API_BASE}/mesures?variable_id=${encodeURIComponent(varId)}&limit=200`
+    );
+
+    majTableau(mesures);
+    majGraphique(mesures);
   } catch (err) {
     console.error(err);
-    tbody.innerHTML =
-      '<tr><td colspan="6" class="error">Erreur lors du chargement des mesures.</td></tr>';
-    msg.textContent = `Erreur : ${err.message}`;
+    msg.textContent = `Erreur de chargement : ${err.message}`;
     msg.className = 'message message-error';
     msg.style.display = 'block';
   }
 }
 
-document.addEventListener('DOMContentLoaded', () => {
-  const user = getCurrentUser();
-  const label = document.getElementById('current-user-label');
-  if (!user) {
-    label.textContent = 'Aucun utilisateur connecté';
-  } else {
-    label.textContent = `Opérateur connecté : ${user.nom} (${user.role || 'Opérateur'})`;
+function exporterCSV() {
+  const varId = document.getElementById('select-variable').value;
+  if (!varId) {
+    alert('Sélectionne une variable avant export.');
+    return;
   }
+  const url = `${API_BASE}/mesures/export/csv?variable_id=${encodeURIComponent(
+    varId
+  )}`;
+  window.location.href = url;
+}
 
-  document.getElementById('btn-go-home').addEventListener('click', () => {
-    window.location.href = 'index.html';
-  });
-
+document.addEventListener('DOMContentLoaded', async () => {
   document.getElementById('btn-dashboard').addEventListener('click', () => {
     window.location.href = 'accueil.html';
   });
 
-  document
-    .getElementById('filters-form')
-    .addEventListener('submit', loadHistory);
+  const selectAuto = document.getElementById('select-automate');
+  const selectVar = document.getElementById('select-variable');
+  const automateFromUrl = getQueryParam('automate_id');
 
-  loadAutomatesForFilter();
-  loadHistory();
+  await chargerAutomates(selectAuto, automateFromUrl);
+  await chargerVariables(selectAuto.value, selectVar);
+
+  selectAuto.addEventListener('change', async () => {
+    await chargerVariables(selectAuto.value, selectVar);
+  });
+
+  document.getElementById('btn-load').addEventListener('click', chargerHistorique);
+  document.getElementById('btn-export').addEventListener('click', exporterCSV);
 });

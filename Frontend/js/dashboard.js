@@ -41,14 +41,14 @@ function renderStatusBadge(online) {
 async function loadAutomates() {
   const tbody = document.getElementById('automates-tbody');
   tbody.innerHTML =
-    '<tr><td colspan="6" class="loading">Chargement des automates...</td></tr>';
+    '<tr><td colspan="7" class="loading">Chargement des automates...</td></tr>';
 
   try {
     const automates = await fetchJSON(`${API_BASE}/automates`);
 
     if (!automates.length) {
       tbody.innerHTML =
-        '<tr><td colspan="6" class="empty-state">Aucun automate enregistré.</td></tr>';
+        '<tr><td colspan="7" class="empty-state">Aucun automate enregistré.</td></tr>';
       updateGlobalStatus(0, 0, 0);
       return;
     }
@@ -74,31 +74,94 @@ async function loadAutomates() {
             const t = data.temperature;
             const p = data.pression;
             lastMeasureText = `${t ?? '-'} °C / ${p ?? '-'} bar`;
-
-            // si tu ajoutes une logique d'alarme côté backend, tu pourras compter ici
             // if (data.alarme) nbWithAlarms++;
           }
         } catch {
-          // on laisse "—" en cas d'erreur
+          // on laisse "—"
         }
       }
 
       const tr = document.createElement('tr');
-      tr.innerHTML = `
-        <td>${a.nom}</td>
-        <td>${a.adresse_ip}</td>
-        <td>${a.emplacement || '—'}</td>
-        <td>${a.operateur || '—'}</td>
-        <td>${renderStatusBadge(online)}</td>
-        <td>${lastMeasureText}</td>
-      `;
+
+      // cellules existantes
+      const tdNom = document.createElement('td');
+      tdNom.textContent = a.nom;
+
+      const tdIp = document.createElement('td');
+      tdIp.textContent = a.adresse_ip;
+
+      const tdEmp = document.createElement('td');
+      tdEmp.textContent = a.emplacement || '—';
+
+      const tdOp = document.createElement('td');
+      tdOp.textContent = a.operateur || '—';
+
+      const tdStatut = document.createElement('td');
+      tdStatut.innerHTML = renderStatusBadge(online);
+
+      const tdDerniere = document.createElement('td');
+      tdDerniere.textContent = lastMeasureText;
+
+      // nouvelle colonne Actions
+      const tdActions = document.createElement('td');
+
+      const btnVoir = document.createElement('button');
+      btnVoir.textContent = 'Voir mesures';
+      btnVoir.classList.add('btn-secondary', 'btn-small');
+      btnVoir.addEventListener('click', () => {
+        // page d’historique/graph par automate
+        window.location.href = `historique.html?automate_id=${a.id}`;
+      });
+
+      const btnConf = document.createElement('button');
+      btnConf.textContent = 'Configurer variables';
+      btnConf.classList.add('btn-secondary', 'btn-small');
+      btnConf.style.marginLeft = '0.5rem';
+      btnConf.addEventListener('click', () => {
+        window.location.href = `automate.html?id=${a.id}`;
+      });
+
+      const btnDel = document.createElement('button');
+      btnDel.textContent = 'Supprimer';
+      btnDel.classList.add('btn-danger', 'btn-small');
+      btnDel.style.marginLeft = '0.5rem';
+      btnDel.addEventListener('click', async () => {
+        const ok = confirm(
+          `Êtes-vous sûr de vouloir supprimer l'automate "${a.nom}" ?`
+        );
+        if (!ok) return;
+
+        try {
+          await fetch(`${API_BASE}/automates/${a.id}`, { method: 'DELETE' });
+          await loadAutomates();
+        } catch (err) {
+          console.error(err);
+          const msg = document.getElementById('auto-message');
+          msg.textContent = `Erreur de suppression : ${err.message}`;
+          msg.className = 'message message-error';
+          msg.style.display = 'block';
+        }
+      });
+
+      tdActions.appendChild(btnVoir);
+      tdActions.appendChild(btnConf);
+      tdActions.appendChild(btnDel);
+
+      tr.appendChild(tdNom);
+      tr.appendChild(tdIp);
+      tr.appendChild(tdEmp);
+      tr.appendChild(tdOp);
+      tr.appendChild(tdStatut);
+      tr.appendChild(tdDerniere);
+      tr.appendChild(tdActions);
+
       tbody.appendChild(tr);
     }
 
     updateGlobalStatus(automates.length, nbOnline, nbWithAlarms);
   } catch (err) {
     console.error(err);
-    tbody.innerHTML = `<tr><td colspan="6" class="error">Erreur de chargement : ${err.message}</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="7" class="error">Erreur de chargement : ${err.message}</td></tr>`;
   }
 }
 
